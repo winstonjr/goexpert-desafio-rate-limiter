@@ -21,6 +21,20 @@ func TestFilterStoreInMemory_LimitPass(t *testing.T) {
 	assert.True(t, approved)
 }
 
+func TestFilterStoreInMemory_LimitPass2Times(t *testing.T) {
+	limiterConfig := make(map[string]*entity.TokenBucketConfig)
+	limiterConfig["127.0.0.1"] = &entity.TokenBucketConfig{
+		MaxRequests:    1,
+		LimitInSeconds: 1,
+		BlockInSeconds: 0,
+	}
+	fsi, err := NewFilterStoreInMemory(limiterConfig)
+	assert.Nil(t, err)
+	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
+	time.Sleep(2 * time.Second)
+	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
+}
+
 func TestFilterStoreInMemory_LimitFailed(t *testing.T) {
 	limiterConfig := make(map[string]*entity.TokenBucketConfig)
 	limiterConfig["127.0.0.1"] = &entity.TokenBucketConfig{
