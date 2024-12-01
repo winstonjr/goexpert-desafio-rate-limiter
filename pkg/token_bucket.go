@@ -20,7 +20,7 @@ func (f *Filter) TokenBucketHandler(next http.Handler) http.Handler {
 			key = getIPAddress(r)
 		}
 
-		if f.store.LimitExceeded(key) {
+		if f.store.InsideLimit(key) {
 			http.Error(w, "you have reached the maximum number of requests or actions allowed within a certain time frame\n", 429)
 			return
 		}

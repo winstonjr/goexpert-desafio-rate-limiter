@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/winstonjr/goexpert-desafio-rate-limiter/internal/entity"
+	"github.com/winstonjr/goexpert-desafio-rate-limiter/configs"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/internal/infra/database"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/pkg"
 	"log"
@@ -11,7 +11,11 @@ import (
 )
 
 func main() {
-	fsi, err := database.NewFilterStoreInMemory(getLimiterConfig())
+	config, err := configs.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Error loading config: ", err)
+	}
+	fsi, err := database.NewFilterStoreInMemory(config.RateLimiterRules)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,20 +40,4 @@ func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-}
-
-func getLimiterConfig() map[string]*entity.TokenBucketConfig {
-	limiterConfig := make(map[string]*entity.TokenBucketConfig)
-	limiterConfig["[::1]:59291"] = &entity.TokenBucketConfig{
-		MaxRequests:    10,
-		LimitInSeconds: 1,
-		BlockInSeconds: 2,
-	}
-	limiterConfig["abc123"] = &entity.TokenBucketConfig{
-		MaxRequests:    10,
-		LimitInSeconds: 1,
-		BlockInSeconds: 1,
-	}
-
-	return limiterConfig
 }
