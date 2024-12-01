@@ -17,7 +17,7 @@ func TestFilterStoreInMemory_LimitPass(t *testing.T) {
 	fsi, err := NewFilterStoreInMemory(limiterConfig)
 	assert.Nil(t, err)
 
-	approved := fsi.LimitExceeded("127.0.0.1")
+	approved := fsi.InsideLimit("127.0.0.1")
 	assert.True(t, approved)
 }
 
@@ -30,9 +30,9 @@ func TestFilterStoreInMemory_LimitPass2Times(t *testing.T) {
 	}
 	fsi, err := NewFilterStoreInMemory(limiterConfig)
 	assert.Nil(t, err)
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
 	time.Sleep(2 * time.Second)
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
 }
 
 func TestFilterStoreInMemory_LimitFailed(t *testing.T) {
@@ -45,11 +45,11 @@ func TestFilterStoreInMemory_LimitFailed(t *testing.T) {
 	fsi, err := NewFilterStoreInMemory(limiterConfig)
 	assert.Nil(t, err)
 
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
-	assert.False(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
+	assert.False(t, fsi.InsideLimit("127.0.0.1"))
 	time.Sleep(3 * time.Second)
-	assert.False(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.False(t, fsi.InsideLimit("127.0.0.1"))
 }
 
 func TestFilterStoreInMemory_LimitFailsAndThenPass(t *testing.T) {
@@ -62,11 +62,11 @@ func TestFilterStoreInMemory_LimitFailsAndThenPass(t *testing.T) {
 	fsi, err := NewFilterStoreInMemory(limiterConfig)
 	assert.Nil(t, err)
 
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
-	assert.False(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
+	assert.False(t, fsi.InsideLimit("127.0.0.1"))
 	time.Sleep(4 * time.Second)
-	assert.True(t, fsi.LimitExceeded("127.0.0.1"))
+	assert.True(t, fsi.InsideLimit("127.0.0.1"))
 }
 
 func TestFilterStoreInMemory_LimitBiggerRequests(t *testing.T) {
@@ -80,15 +80,15 @@ func TestFilterStoreInMemory_LimitBiggerRequests(t *testing.T) {
 	assert.Nil(t, err)
 
 	for i := 0; i < 10; i++ {
-		assert.True(t, fsi.LimitExceeded("abc123"))
+		assert.True(t, fsi.InsideLimit("abc123"))
 	}
-	assert.False(t, fsi.LimitExceeded("abc123"))
+	assert.False(t, fsi.InsideLimit("abc123"))
 	time.Sleep(3 * time.Second)
-	assert.False(t, fsi.LimitExceeded("abc123"))
+	assert.False(t, fsi.InsideLimit("abc123"))
 	time.Sleep(1 * time.Second)
-	assert.True(t, fsi.LimitExceeded("abc123"))
+	assert.True(t, fsi.InsideLimit("abc123"))
 
-	approved := fsi.LimitExceeded("abc123")
+	approved := fsi.InsideLimit("abc123")
 	assert.True(t, approved)
 }
 
@@ -103,14 +103,14 @@ func TestFilterStoreInMemory_LimitBiggerRequestsNoBlockAfterLimit(t *testing.T) 
 	assert.Nil(t, err)
 
 	for i := 0; i < 10; i++ {
-		assert.True(t, fsi.LimitExceeded("abc123"))
+		assert.True(t, fsi.InsideLimit("abc123"))
 	}
-	assert.False(t, fsi.LimitExceeded("abc123"))
+	assert.False(t, fsi.InsideLimit("abc123"))
 	time.Sleep(2 * time.Second)
-	assert.False(t, fsi.LimitExceeded("abc123"))
+	assert.False(t, fsi.InsideLimit("abc123"))
 	time.Sleep(1 * time.Second)
-	assert.True(t, fsi.LimitExceeded("abc123"))
+	assert.True(t, fsi.InsideLimit("abc123"))
 
-	approved := fsi.LimitExceeded("abc123")
+	approved := fsi.InsideLimit("abc123")
 	assert.True(t, approved)
 }

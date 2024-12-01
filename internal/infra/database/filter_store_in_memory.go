@@ -22,7 +22,7 @@ func NewFilterStoreInMemory(initialConfig map[string]*entity.TokenBucketConfig) 
 	}, nil
 }
 
-func (f *FilterStoreInMemory) LimitExceeded(key string) bool {
+func (f *FilterStoreInMemory) InsideLimit(key string) bool {
 	interaction := f.returnInteraction(key)
 	return entity.ValidateRules(key, interaction, f.createEmptyInteraction)
 }
@@ -39,8 +39,8 @@ func (f *FilterStoreInMemory) returnInteraction(key string) *entity.Interaction 
 
 func (f *FilterStoreInMemory) createEmptyInteraction(key string) *entity.Interaction {
 	actualConfig := &entity.TokenBucketConfig{
-		MaxRequests:    1_000_000_000,
-		LimitInSeconds: 1,
+		MaxRequests:    10_000_000_000,
+		LimitInSeconds: 60 * 60,
 		BlockInSeconds: 0,
 	}
 	if specificConfig, ok := f.initialConfig[key]; ok {
