@@ -15,6 +15,9 @@ type TokenBucketConfigDTO struct {
 type conf struct {
 	RateLimiterRulesJSON string `mapstructure:"RATE_LIMITER_RULES"`
 	RateLimiterRules     map[string]*entity.TokenBucketConfig
+	RedisAddress         string `mapstructure:"REDIS_ADDRESS"`
+	RedisPassword        string `mapstructure:"REDIS_PASSWORD"`
+	RedisDb              int    `mapstructure:"REDIS_DB"`
 }
 
 func LoadConfig(path string) (*conf, error) {

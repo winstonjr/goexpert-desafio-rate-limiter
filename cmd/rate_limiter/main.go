@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/configs"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/internal/infra/database"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/pkg"
@@ -15,7 +17,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading config: ", err)
 	}
-	fsi, err := database.NewFilterStoreInMemory(config.RateLimiterRules)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.RedisAddress,
+		Password: config.RedisPassword,
+		DB:       config.RedisDb,
+	})
+	ctx := context.Background()
+	_, err = rdb.Ping(ctx).Result()
+	if err != nil {
+		log.Fatal("could not ping redis", err)
+	}
+
+	fsi, err := database.NewFilterStoreRedis(config.RateLimiterRules, rdb)
 	if err != nil {
 		log.Fatal(err)
 	}
