@@ -2,6 +2,7 @@ package configs
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/spf13/viper"
 	"github.com/winstonjr/goexpert-desafio-rate-limiter/internal/entity"
 )
@@ -29,12 +30,34 @@ func LoadConfig(path string) (*Conf, error) {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	err = viper.Unmarshal(&cfg)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		err = viper.Unmarshal(&cfg)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		rateLimiterRulesJSON := viper.GetString("RATE_LIMITER_RULES")
+		storeKind := viper.GetString("STORE_KIND")
+		if rateLimiterRulesJSON == "" {
+			return nil, errors.New("no rate limiter rules configured")
+		}
+		cfg = &Conf{
+			RateLimiterRulesJSON: rateLimiterRulesJSON,
+			StoreKind:            storeKind,
+		}
+		if storeKind == "redis" {
+			redisAddress := viper.GetString("REDIS_ADDRESS")
+			redisPassword := viper.GetString("REDIS_PASSWORD")
+			redisDb := viper.GetInt("REDIS_DB")
+
+			if redisAddress == "" {
+				return nil, errors.New("no redis address configured")
+			}
+
+			cfg.RedisAddress = redisAddress
+			cfg.RedisPassword = redisPassword
+			cfg.RedisDb = redisDb
+		}
 	}
 
 	rulesInObject, err := cfg.getRateLimiterRules(cfg.RateLimiterRulesJSON)
