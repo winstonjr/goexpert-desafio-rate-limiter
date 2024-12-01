@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/redis/go-redis/v9"
@@ -47,7 +48,7 @@ func createStoreStrategy(config *configs.Conf) entity.FilterStoreInterface {
 	if config.StoreKind == "redis" {
 		ctx := context.Background()
 		rdb := redis.NewClient(&redis.Options{
-			Addr:     config.RedisAddress,
+			Addr:     fmt.Sprintf("%s:%d", config.RedisAddress, config.RedisPort),
 			Password: config.RedisPassword,
 			DB:       config.RedisDb,
 		})

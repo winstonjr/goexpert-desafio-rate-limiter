@@ -19,6 +19,7 @@ type Conf struct {
 	RedisAddress         string `mapstructure:"REDIS_ADDRESS"`
 	RedisPassword        string `mapstructure:"REDIS_PASSWORD"`
 	RedisDb              int    `mapstructure:"REDIS_DB"`
+	RedisPort            int    `mapstructure:"REDIS_PORT"`
 	StoreKind            string `mapstructure:"STORE_KIND"`
 }
 
@@ -49,14 +50,19 @@ func LoadConfig(path string) (*Conf, error) {
 			redisAddress := viper.GetString("REDIS_ADDRESS")
 			redisPassword := viper.GetString("REDIS_PASSWORD")
 			redisDb := viper.GetInt("REDIS_DB")
+			redisPort := viper.GetInt("REDIS_PORT")
 
 			if redisAddress == "" {
 				return nil, errors.New("no redis address configured")
+			}
+			if redisPort == 0 {
+				return nil, errors.New("redis port must be different of 0")
 			}
 
 			cfg.RedisAddress = redisAddress
 			cfg.RedisPassword = redisPassword
 			cfg.RedisDb = redisDb
+			cfg.RedisPort = redisPort
 		}
 	}
 
