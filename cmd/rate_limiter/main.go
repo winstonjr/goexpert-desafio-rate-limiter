@@ -40,15 +40,15 @@ func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
 
 func getLimiterConfig() map[string]*entity.TokenBucketConfig {
 	limiterConfig := make(map[string]*entity.TokenBucketConfig)
-	limiterConfig["127.0.0.1"] = &entity.TokenBucketConfig{
+	limiterConfig["[::1]:59291"] = &entity.TokenBucketConfig{
 		MaxRequests:    10,
-		LimitInSeconds: 5,
-		BlockInSeconds: 10,
+		LimitInSeconds: 1,
+		BlockInSeconds: 2,
 	}
 	limiterConfig["abc123"] = &entity.TokenBucketConfig{
-		MaxRequests:    15,
-		LimitInSeconds: 5,
-		BlockInSeconds: 20,
+		MaxRequests:    10,
+		LimitInSeconds: 1,
+		BlockInSeconds: 1,
 	}
 
 	return limiterConfig
