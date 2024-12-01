@@ -12,11 +12,12 @@ import (
 var ctx = context.Background()
 
 type InteractionDTO struct {
-	NumberOfInteractions uint  `json:"numberOfInteractions"`
-	AllowedInteractions  uint  `json:"allowedInteractions"`
-	AllowedInterval      int64 `json:"allowedInterval"`
-	BlockInterval        int64 `json:"blockInterval"`
-	Blocked              bool  `json:"blocked"`
+	NumberOfInteractions uint          `json:"numberOfInteractions"`
+	AllowedInteractions  uint          `json:"allowedInteractions"`
+	AllowedInterval      int64         `json:"allowedInterval"`
+	BlockInterval        int64         `json:"blockInterval"`
+	Blocked              bool          `json:"blocked"`
+	Expiration           time.Duration `json:"expiration"`
 }
 
 type FilterStoreRedis struct {
@@ -37,11 +38,11 @@ func NewFilterStoreRedis(initialConfig map[string]*entity.TokenBucketConfig, cli
 
 func (f *FilterStoreRedis) InsideLimit(key string) bool {
 	interaction := f.returnInteraction(key)
-	return entity.ValidateRules(key, interaction, f.createEmptyInteraction)
+	return entity.ValidateRules(key, interaction, f.createEmptyInteraction, f.updateInteraction)
 }
 
 func (f *FilterStoreRedis) returnInteraction(key string) *entity.Interaction {
-	if interaction, err := f.rdb.Get(ctx, "key").Result(); err == nil {
+	if interaction, err := f.rdb.Get(ctx, key).Result(); err == nil {
 		return f.stringToInteraction(interaction)
 	} else if interaction, err = f.rdb.Get(ctx, "*").Result(); err == nil {
 		return f.stringToInteraction(interaction)
@@ -69,9 +70,9 @@ func (f *FilterStoreRedis) createEmptyInteraction(key string) *entity.Interactio
 		AllowedInterval:      now + actualConfig.LimitInSeconds,
 		BlockInterval:        now + blockingSeconds,
 		Blocked:              false,
+		Expiration:           time.Duration(blockingSeconds+60) * time.Second,
 	}
-	expiration := time.Duration(blockingSeconds) * time.Second
-	f.rdb.Set(ctx, key, f.interactionToString(newInteraction), expiration)
+	f.rdb.Set(ctx, key, f.interactionToString(newInteraction), newInteraction.Expiration)
 
 	return newInteraction
 }
@@ -88,6 +89,7 @@ func (f *FilterStoreRedis) stringToInteraction(jsonString string) *entity.Intera
 		AllowedInterval:      result.AllowedInterval,
 		BlockInterval:        result.BlockInterval,
 		Blocked:              result.Blocked,
+		Expiration:           result.Expiration,
 	}
 }
 
@@ -98,10 +100,16 @@ func (f *FilterStoreRedis) interactionToString(interaction *entity.Interaction) 
 		AllowedInterval:      interaction.AllowedInterval,
 		BlockInterval:        interaction.BlockInterval,
 		Blocked:              interaction.Blocked,
+		Expiration:           interaction.Expiration,
 	}
 	result, err := json.Marshal(input)
 	if err != nil {
 		panic(err)
 	}
 	return string(result)
+}
+
+func (f *FilterStoreRedis) updateInteraction(key string, interaction *entity.Interaction) {
+	interaction.NumberOfInteractions = interaction.NumberOfInteractions + 1
+	f.rdb.Set(ctx, key, f.interactionToString(interaction), interaction.Expiration)
 }

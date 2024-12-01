@@ -24,7 +24,7 @@ func NewFilterStoreInMemory(initialConfig map[string]*entity.TokenBucketConfig) 
 
 func (f *FilterStoreInMemory) InsideLimit(key string) bool {
 	interaction := f.returnInteraction(key)
-	return entity.ValidateRules(key, interaction, f.createEmptyInteraction)
+	return entity.ValidateRules(key, interaction, f.createEmptyInteraction, f.updateInteraction)
 }
 
 func (f *FilterStoreInMemory) returnInteraction(key string) *entity.Interaction {
@@ -59,4 +59,8 @@ func (f *FilterStoreInMemory) createEmptyInteraction(key string) *entity.Interac
 	f.interactions[key] = newInteraction
 
 	return newInteraction
+}
+
+func (f *FilterStoreInMemory) updateInteraction(key string, interaction *entity.Interaction) {
+	interaction.NumberOfInteractions = interaction.NumberOfInteractions + 1
 }
